@@ -254,6 +254,13 @@ export default function YandexMap() {
             '</div>'
           );
           
+          // Özel araç simge/ikon tanımlamaları (kırmızı renkli)
+          const ozelArac1IconLayout = window.ymaps.templateLayoutFactory.createClass(
+            '<div class="arac-icon" style="position: relative; width: 24px; height: 24px; background-color: #FF0000; border: 1px solid #8B0000; border-radius: 3px; display: flex; justify-content: center; align-items: center;">' +
+            '<div style="color: white; font-weight: bold; font-size: 12px; transform: rotate(90deg);">🚗</div>' +
+            '</div>'
+          );
+          
           // Atanan araç simge/ikon tanımlamaları (sarı renkli)
           const atananAracIconLayout = window.ymaps.templateLayoutFactory.createClass(
             '<div class="arac-icon" style="position: relative; width: 24px; height: 24px; background-color: #FFD700; border: 1px solid #DAA520; border-radius: 3px; display: flex; justify-content: center; align-items: center;">' +
