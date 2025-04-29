@@ -50,50 +50,54 @@ export default function YandexMap() {
   // Simülasyon durum değişkenleri
   const [simulationStarted, setSimulationStarted] = useState(false);
   const [simulationOutput, setSimulationOutput] = useState<string>("");
+  const [simulationStep, setSimulationStep] = useState(0);
   const [trafo1Status, setTrafo1Status] = useState<'Normal' | 'Tehlikeli'>('Normal');
-  const [trafo2Status, setTrafo2Status] = useState<'Normal' | 'Tehlikeli' | 'Aydinlatma'>('Normal');
   const [aramaAsamasi, setAramaAsamasi] = useState<'Bekliyor' | 'Tamamlandi'>('Bekliyor');
-  const [seciliTrafo, setSeciliTrafo] = useState<'120' | '130' | null>(null);
   // Tarayıcıda olup olmadığımızı kontrol etmek için
   const [isBrowser, setIsBrowser] = useState(false);
 
   // Simülasyonu başlat
   const startSimulation = () => {
     setSimulationStarted(true);
-    setSeciliTrafo('120');
-    setTrafo1Status('Tehlikeli');
-    setSimulationOutput("120 Nolu Trafo Yeraltı Hat tipi\nAraç Bekleniyor...");
+    setSimulationStep(1);
+    setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...");
     
-    // 3 saniye sonra araca atama yapıldı mesajını göster
+    // Adım adım simülasyonu göster, her 2 saniyede bir yeni adım
     setTimeout(() => {
-      setAramaAsamasi('Tamamlandi');
-      setSimulationOutput("120 Nolu Trafo Yeraltı Hat tipi\nAraç Bekleniyor...\n34 ABC 123 plakalı yeraltı tipi araç atandı.");
+      setSimulationStep(2);
+      setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.");
       
-      // 120 nolu trafo simülasyonu tamamlandıktan 5 saniye sonra 130 nolu trafo simülasyonu başlasın
       setTimeout(() => {
-        setSeciliTrafo('130');
-        setTrafo1Status('Normal');
-        setTrafo2Status('Aydinlatma');
-        setAramaAsamasi('Bekliyor');
-        setSimulationOutput("120 Nolu Trafo Yeraltı Hat tipi\nAraç Bekleniyor...\n34 ABC 123 plakalı yeraltı tipi araç atandı.\n\n130 Nolu Trafo Havai Hat tipi\nAraç Bekleniyor...");
+        setSimulationStep(3);
+        setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.");
         
-        // 3 saniye sonra 130 için araç atama yapıldı mesajını göster
         setTimeout(() => {
-          setAramaAsamasi('Tamamlandi');
-          setSimulationOutput("120 Nolu Trafo Yeraltı Hat tipi\nAraç Bekleniyor...\n34 ABC 123 plakalı yeraltı tipi araç atandı.\n\n130 Nolu Trafo Havai Hat tipi\nAraç Bekleniyor...\n34 KC 9012 plakalı araç atandı.");
-        }, 3000);
-      }, 5000);
-    }, 3000);
+          setSimulationStep(4);
+          setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.");
+          
+          setTimeout(() => {
+            setSimulationStep(5);
+            setTrafo1Status('Tehlikeli');
+            setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..");
+            
+            setTimeout(() => {
+              setSimulationStep(6);
+              setAramaAsamasi('Tamamlandi');
+              setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.");
+            }, 2000);
+          }, 2000);
+        }, 2000);
+      }, 2000);
+    }, 2000);
   };
 
   // Simülasyonu sıfırla
   const resetSimulation = () => {
     setSimulationStarted(false);
+    setSimulationStep(0);
     setTrafo1Status('Normal');
-    setTrafo2Status('Normal');
     setAramaAsamasi('Bekliyor');
     setSimulationOutput("");
-    setSeciliTrafo(null);
   };
 
   // Tarayıcıda olduğumuzu belirlemek için
@@ -299,7 +303,7 @@ export default function YandexMap() {
             balloonContent: `<div><strong>${ARAC_1_PLAKA}</strong><br>${ARAC_1_TIP} araç<br>120 Nolu trafodan ${ARAC_1_MESAFE} uzaklıkta</div>`,
             hintContent: `${ARAC_1_PLAKA} - 120 Nolu trafodan ${ARAC_1_MESAFE} uzaklıkta`
           }, {
-            iconLayout: simulationStarted && seciliTrafo === '120' ? atananAracIconLayout : aracIconLayout,
+            iconLayout: simulationStarted && simulationStep === 1 ? atananAracIconLayout : aracIconLayout,
             iconShape: {
               type: 'Rectangle',
               coordinates: [[0, 0], [24, 24]]
@@ -333,7 +337,7 @@ export default function YandexMap() {
             balloonContent: `<div><strong>${ARAC_4_PLAKA}</strong><br>130 Nolu trafodan ${ARAC_4_MESAFE} uzaklıkta</div>`,
             hintContent: `${ARAC_4_PLAKA} - 130 Nolu trafodan ${ARAC_4_MESAFE} uzaklıkta`
           }, {
-            iconLayout: simulationStarted ? atananAracIconLayout : aracIconLayout,
+            iconLayout: simulationStarted && simulationStep === 1 ? atananAracIconLayout : aracIconLayout,
             iconShape: {
               type: 'Rectangle',
               coordinates: [[0, 0], [24, 24]]
@@ -383,13 +387,8 @@ export default function YandexMap() {
             map.geoObjects.add(trafo1Marker);
           }
           
-          if (trafo2Status === 'Aydinlatma') {
-            map.geoObjects.add(trafo2AydinlatmaMarker);
-          } else if (trafo2Status === 'Tehlikeli') {
-            map.geoObjects.add(trafo2TehlikeliMarker);
-          } else {
-            map.geoObjects.add(trafo2Marker);
-          }
+          // 130 Nolu trafo için normal marker ekle
+          map.geoObjects.add(trafo2Marker);
         });
       }
     }
@@ -401,7 +400,7 @@ export default function YandexMap() {
         yandexScript.remove();
       }
     };
-  }, [trafo1Status, trafo2Status, simulationStarted, seciliTrafo, isBrowser]);
+  }, [trafo1Status, simulationStarted, simulationStep, isBrowser]);
 
   return (
     <div className="map-container flex h-[80vh]">
@@ -422,19 +421,6 @@ export default function YandexMap() {
             </div>
           ) : (
             <div className="mb-1 space-y-1">
-              <div className="bg-red-50 border-l-2 border-red-500 text-red-700 px-1.5 py-1 rounded-sm text-xxs">
-                {seciliTrafo === '120' ? (
-                  <>
-                    <p className="font-bold text-xxs">Tehlikeli Durum</p>
-                    <p className="text-xxs">120 Nolu Trafo</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-bold text-xxs">Aydınlatma Arıza</p>
-                    <p className="text-xxs">130 Nolu Trafo</p>
-                  </>
-                )}
-              </div>
               <button 
                 onClick={resetSimulation}
                 className="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-1 px-2 rounded text-xxs"
@@ -449,18 +435,18 @@ export default function YandexMap() {
           <div className="flex-1 bg-white p-1 mb-1">
             <div className="flex items-center justify-between mb-1">
               <h4 className="text-xxs font-semibold text-gray-700">Simülasyon Çıktısı</h4>
-              {aramaAsamasi === 'Bekliyor' && (
+              {simulationStep < 6 && (
                 <span className="text-xxs text-yellow-600 bg-yellow-50 px-1 py-0.5 rounded-sm">
                   İşleniyor...
                 </span>
               )}
-              {aramaAsamasi === 'Tamamlandi' && (
+              {simulationStep >= 6 && (
                 <span className="text-xxs text-green-600 bg-green-50 px-1 py-0.5 rounded-sm">
                   Tamamlandı
                 </span>
               )}
             </div>
-            <pre className="bg-white text-gray-800 p-1.5 rounded-sm font-mono text-xxs whitespace-pre-line overflow-auto border border-gray-300 h-28">
+            <pre className="bg-white text-gray-800 p-1.5 rounded-sm font-mono text-xxs whitespace-pre-line overflow-auto border border-gray-300 h-32">
               {simulationOutput}
             </pre>
           </div>
