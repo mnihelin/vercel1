@@ -45,11 +45,16 @@ const ARAC_6_KONUM = [41.0038, 29.1276]; // 34 ME 7890 plakalı araç
 const ARAC_6_PLAKA = "34 ME 7890";
 const ARAC_6_MESAFE = "2 KM";
 
+// Sabit plaka metinleri için kırmızı renkli versiyonlar
+const ARAC_1_PLAKA_RED = "34 ABC 123";
+const ARAC_4_PLAKA_RED = "34 KC 9012";
+
 export default function YandexMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   // Simülasyon durum değişkenleri
   const [simulationStarted, setSimulationStarted] = useState(false);
   const [simulationOutput, setSimulationOutput] = useState<string>("");
+  const [renderOutput, setRenderOutput] = useState<string>("");
   const [simulationStep, setSimulationStep] = useState(0);
   const [trafo1Status, setTrafo1Status] = useState<'Normal' | 'Tehlikeli'>('Normal');
   const [trafo2Status, setTrafo2Status] = useState<'Normal' | 'Tehlikeli'>('Normal');
@@ -64,29 +69,40 @@ export default function YandexMap() {
     setSimulationStep(1);
     setActiveTrafo('120');
     setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...");
+    setRenderOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...");
     
     // Adım adım simülasyonu göster, her 2 saniyede bir yeni adım
     setTimeout(() => {
       setSimulationStep(2);
-      setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.");
+      const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.";
+      setSimulationOutput(output);
+      setRenderOutput(output);
       
       setTimeout(() => {
         setSimulationStep(3);
-        setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.");
+        const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.";
+        setSimulationOutput(output);
+        setRenderOutput(output);
         
         setTimeout(() => {
           setSimulationStep(4);
-          setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.");
+          const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.";
+          setSimulationOutput(output);
+          setRenderOutput(output);
           
           setTimeout(() => {
             setSimulationStep(5);
             setTrafo1Status('Tehlikeli');
-            setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..");
+            const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..";
+            setSimulationOutput(output);
+            setRenderOutput(output);
             
             setTimeout(() => {
               setSimulationStep(6);
               setAramaAsamasi('Tamamlandi');
-              setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.");
+              const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.";
+              setSimulationOutput(output);
+              setRenderOutput(output.replace("34 ABC 123", "<span style='color:red'>34 ABC 123</span>"));
               
               // 5 saniye sonra 130 nolu trafo senaryosuna geçiş
               setTimeout(() => {
@@ -95,28 +111,40 @@ export default function YandexMap() {
                 setTrafo2Status('Tehlikeli');
                 setSimulationStep(7);
                 setAramaAsamasi('Bekliyor');
-                setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...");
+                const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...";
+                setSimulationOutput(output);
+                setRenderOutput(output.replace("34 ABC 123", "<span style='color:red'>34 ABC 123</span>"));
                 
                 setTimeout(() => {
                   setSimulationStep(8);
-                  setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.");
+                  const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.";
+                  setSimulationOutput(output);
+                  setRenderOutput(output.replace("34 ABC 123", "<span style='color:red'>34 ABC 123</span>"));
                   
                   setTimeout(() => {
                     setSimulationStep(9);
-                    setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.");
+                    const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.";
+                    setSimulationOutput(output);
+                    setRenderOutput(output.replace("34 ABC 123", "<span style='color:red'>34 ABC 123</span>"));
                     
                     setTimeout(() => {
                       setSimulationStep(10);
-                      setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.\n• 130B hattı havai hat tipine sahip.");
+                      const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.\n• 130B hattı havai hat tipine sahip.";
+                      setSimulationOutput(output);
+                      setRenderOutput(output.replace("34 ABC 123", "<span style='color:red'>34 ABC 123</span>"));
                       
                       setTimeout(() => {
                         setSimulationStep(11);
-                        setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.\n• 130B hattı havai hat tipine sahip.\n• 130B hattı için en uygun havai hat ekibi bulunuyor..");
+                        const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.\n• 130B hattı havai hat tipine sahip.\n• 130B hattı için en uygun havai hat ekibi bulunuyor..";
+                        setSimulationOutput(output);
+                        setRenderOutput(output.replace("34 ABC 123", "<span style='color:red'>34 ABC 123</span>"));
                         
                         setTimeout(() => {
                           setSimulationStep(12);
                           setAramaAsamasi('Tamamlandi');
-                          setSimulationOutput("• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.\n• 130B hattı havai hat tipine sahip.\n• 130B hattı için en uygun havai hat ekibi bulunuyor..\n• 130B hattı siparişi için en yakın ekip 34 KC 9012 olarak belirlendi.");
+                          const output = "• 3 numaralı tesisattan \"Aydınlatma Arızası\" bildirimi geldi...\n• 3 numaralı tesisat 22 numaralı kofre'de bulunuyor.\n• 22 numaralı kofre 120A hattına bağlı.\n• 120A hattı yeraltı tipine sahip.\n• 120A hattı için en uygun yer altı ekibi bulunuyor..\n• 120A hattı siparişi için en yakın ekip 34 ABC 123 olarak belirlendi.\n\n• 8 numaralı tesisattan \"Aydınlatma Arızası-Tehlikeli Durum\" bildirimi geldi...\n• 8 numaralı tesisat 32 numaralı kofre'de bulunuyor.\n• 32 numaralı kofre 130B hattına bağlı.\n• 130B hattı havai hat tipine sahip.\n• 130B hattı için en uygun havai hat ekibi bulunuyor..\n• 130B hattı siparişi için en yakın ekip 34 KC 9012 olarak belirlendi.";
+                          setSimulationOutput(output);
+                          setRenderOutput(output.replace("34 ABC 123", "<span style='color:red'>34 ABC 123</span>").replace("34 KC 9012", "<span style='color:red'>34 KC 9012</span>"));
                         }, 2000);
                       }, 2000);
                     }, 2000);
@@ -139,6 +167,7 @@ export default function YandexMap() {
     setAramaAsamasi('Bekliyor');
     setActiveTrafo(null);
     setSimulationOutput("");
+    setRenderOutput("");
   };
 
   // Tarayıcıda olduğumuzu belirlemek için
@@ -210,13 +239,6 @@ export default function YandexMap() {
           // Atanan araç simge/ikon tanımlamaları (sarı renkli)
           const atananAracIconLayout = window.ymaps.templateLayoutFactory.createClass(
             '<div class="arac-icon" style="position: relative; width: 24px; height: 24px; background-color: #FFD700; border: 1px solid #DAA520; border-radius: 3px; display: flex; justify-content: center; align-items: center;">' +
-            '<div style="color: white; font-weight: bold; font-size: 12px; transform: rotate(90deg);">🚗</div>' +
-            '</div>'
-          );
-          
-          // 34 ABC 123 plakalı araç için özel kırmızı ikon
-          const ozelArac1IconLayout = window.ymaps.templateLayoutFactory.createClass(
-            '<div class="arac-icon" style="position: relative; width: 24px; height: 24px; background-color: #FF0000; border: 1px solid #8B0000; border-radius: 3px; display: flex; justify-content: center; align-items: center;">' +
             '<div style="color: white; font-weight: bold; font-size: 12px; transform: rotate(90deg);">🚗</div>' +
             '</div>'
           );
@@ -485,8 +507,7 @@ export default function YandexMap() {
         
         {simulationStarted && (
           <div className="flex-1 bg-white p-1 mb-1">
-            <div className="flex items-center justify-between mb-1">
-              <h4 className="text-xxs font-semibold text-gray-700">Simülasyon Çıktısı</h4>
+            <div className="flex items-center justify-end mb-1">
               {(activeTrafo === '120' && simulationStep < 6) || (activeTrafo === '130' && simulationStep < 12) ? (
                 <span className="text-xxs text-yellow-600 bg-yellow-50 px-1 py-0.5 rounded-sm">
                   İşleniyor...
@@ -497,9 +518,10 @@ export default function YandexMap() {
                 </span>
               ) : null}
             </div>
-            <pre className="bg-white text-gray-800 p-1.5 rounded-sm font-mono text-xxs whitespace-pre-line overflow-auto border border-gray-300 h-48">
-              {simulationOutput}
-            </pre>
+            <pre 
+              className="bg-white text-gray-800 p-1.5 rounded-sm font-mono text-xxs whitespace-pre-line overflow-auto border border-gray-300 h-48"
+              dangerouslySetInnerHTML={{ __html: renderOutput }}
+            />
           </div>
         )}
       </div>
