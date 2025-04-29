@@ -536,10 +536,22 @@ export default function YandexMap() {
                 </span>
               ) : null}
             </div>
-            <pre 
-              className="bg-white text-gray-800 p-1.5 rounded-sm font-mono text-xxs whitespace-pre-line overflow-auto border border-gray-300 h-48"
-              dangerouslySetInnerHTML={{ __html: renderOutput }}
-            />
+            <pre className="bg-white text-gray-800 p-1.5 rounded-sm font-mono text-xxs whitespace-pre-line overflow-auto border border-gray-300 h-48">
+              {simulationOutput.includes(ARAC_1_PLAKA) && (
+                <span 
+                  dangerouslySetInnerHTML={{ 
+                    __html: simulationOutput.replace(
+                      ARAC_1_PLAKA, 
+                      `<span style="color:red;font-weight:bold">${ARAC_1_PLAKA}</span>`
+                    ).replace(
+                      ARAC_4_PLAKA, 
+                      `<span style="color:red;font-weight:bold">${ARAC_4_PLAKA}</span>`
+                    )
+                  }} 
+                />
+              )}
+              {!simulationOutput.includes(ARAC_1_PLAKA) && simulationOutput}
+            </pre>
           </div>
         )}
       </div>
