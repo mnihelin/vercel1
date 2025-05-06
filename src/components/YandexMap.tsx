@@ -7,6 +7,24 @@ const ATASEHIR_COORDS = [41.0012, 29.1175];
 const TRAFO_1_KONUM = [41.0026, 29.1269]; // 120 Nolu A çıkışı trafo konumu (Tevazu Sokak)
 const TRAFO_2_KONUM = [41.0032, 29.1273]; // 130 Nolu B çıkışı trafo konumu
 
+// 120 A çıkışı - normal durum (Hisar Sokak)
+const HAT_120A_KONUM = [41.0023, 29.1266]; // 120 A çıkışı konumu
+
+// 120 B çıkışı - tehlikeli durum (Hisar Sokak)
+const HAT_120B_KONUM = [41.0027, 29.1268]; // 120 B çıkışı konumu
+
+// 130 A çıkışı - normal durum (Şerif Sokak)
+const HAT_130A_KONUM = [41.0031, 29.1269]; // 130 A çıkışı konumu
+
+// 130 B çıkışı - tehlikeli durum (Şerif Sokak)
+const HAT_130B_KONUM = [41.0033, 29.1275]; // 130 B çıkışı konumu
+
+// Araçların plaka bilgileri - atama için
+const ARAC_FF5179 = "34FF5179"; // 120 B çıkışına atanacak araç (yeraltı tipi)
+const ARAC_ABC123 = "34ABC123"; // 130 B çıkışına atanacak araç (havai tipi)
+const ARAC_GG6280 = "34GG6280"; // 120 A çıkışına atanacak araç (yeraltı tipi)
+const ARAC_ME7890 = "34ME7890"; // 130 A çıkışına atanacak araç (yeraltı tipi)
+
 // 120 Nolu trafonun sokağında kofreler - art arda dizilmiş
 const KOFRE_1_KONUM = [41.0023, 29.1266]; // 22 Nolu Kofre
 const KOFRE_2_KONUM = [41.0025, 29.1267]; // 23 Nolu Kofre 
@@ -19,7 +37,7 @@ const KOFRE_5_KONUM = [41.0032, 29.1272]; // 32 Nolu Kofre - sokağın ortasınd
 const KOFRE_6_KONUM = [41.0033, 29.1275]; // 33 Nolu Kofre - sokağın sonunda
 
 // Araçların konumları ve bilgileri
-const ARAC_1_KONUM = [41.0025, 29.1265]; // 34 ABC 123 plakalı araç (yeraltı tipi)
+const ARAC_1_KONUM = [41.0025, 29.1265]; // 34 ABC 123 plakalı araç
 const ARAC_1_PLAKA = "34 ABC 123";
 const ARAC_1_MESAFE = "200 metre";
 const ARAC_1_TIP = "Yeraltı tipi";
@@ -60,6 +78,12 @@ export default function YandexMap() {
   const [trafo2Status, setTrafo2Status] = useState<'Normal' | 'Tehlikeli'>('Normal');
   const [activeTrafo, setActiveTrafo] = useState<'120' | '130' | null>(null);
   const [aramaAsamasi, setAramaAsamasi] = useState<'Bekliyor' | 'Tamamlandi'>('Bekliyor');
+  // Yeni otomatik atama simülasyonu için değişkenler
+  const [autoAssignSimulationStarted, setAutoAssignSimulationStarted] = useState(false);
+  const [autoAssignSimulationOutput, setAutoAssignSimulationOutput] = useState<string>("");
+  const [autoAssignSimulationStep, setAutoAssignSimulationStep] = useState(0);
+  const [activeHat, setActiveHat] = useState<'120A' | '120B' | '130A' | '130B' | null>(null);
+  const [showCompletedAssignments, setShowCompletedAssignments] = useState<string[]>([]);
   // Tarayıcıda olup olmadığımızı kontrol etmek için
   const [isBrowser, setIsBrowser] = useState(false);
 
@@ -186,6 +210,107 @@ export default function YandexMap() {
     setActiveTrafo(null);
     setSimulationOutput("");
     setRenderOutput("");
+  };
+
+  // Formatlanmış otomatik atama çıktısı
+  const formatAutoAssignOutput = (output: string) => {
+    if (!output) return '';
+    
+    let formattedOutput = output;
+    // Tüm araç plakalarını kırmızı renklendir
+    [ARAC_FF5179, ARAC_ABC123, ARAC_GG6280, ARAC_ME7890].forEach(plaka => {
+      let parts = formattedOutput.split(plaka);
+      if (parts.length > 1) {
+        formattedOutput = parts.join(`<span class="text-red-600 font-bold">${plaka}</span>`);
+      }
+    });
+    
+    // "Tehlikeli" ifadesini kırmızı yap
+    formattedOutput = formattedOutput.replace(/Tehlikeli/g, '<span class="text-red-600 font-bold">Tehlikeli</span>');
+    
+    return formattedOutput;
+  };
+
+  // Otomatik atama simülasyonunu başlat
+  const startAutoAssignSimulation = () => {
+    setAutoAssignSimulationStarted(true);
+    setAutoAssignSimulationStep(1);
+    setActiveHat('120B');
+    setShowCompletedAssignments([]);
+    const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştiriliyor.\n2. Tehlikeli durum bildirimleri tespit ediliyor.\n3. Aynı AG Fider çıkışına bağlı kofreler belirleniyor.\n\n• İşleniyor...";
+    setAutoAssignSimulationOutput(output);
+    
+    // Adım adım simülasyonu göster, her 2 saniyede bir yeni adım
+    setTimeout(() => {
+      setAutoAssignSimulationStep(2);
+      const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atama için uygun araç aranıyor...";
+      setAutoAssignSimulationOutput(output);
+      
+      setTimeout(() => {
+        setAutoAssignSimulationStep(3);
+        const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı";
+        setAutoAssignSimulationOutput(output);
+        setShowCompletedAssignments([...showCompletedAssignments, '120B']);
+        
+        setTimeout(() => {
+          setAutoAssignSimulationStep(4);
+          setActiveHat('130B');
+          const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #2: 130 B Çıkışı (Tehlikeli durum - Şerif Sokak)\n• Hat Tipi: Havai\n• Tesisatlar: 32-42\n• Atama için uygun araç aranıyor...";
+          setAutoAssignSimulationOutput(output);
+          
+          setTimeout(() => {
+            setAutoAssignSimulationStep(5);
+            const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #2: 130 B Çıkışı (Tehlikeli durum - Şerif Sokak)\n• Hat Tipi: Havai\n• Tesisatlar: 32-42\n• Atanan Araç: 34ABC123 (Şerif Sokak'ta havai tipi araç)\n• Atama Durumu: ✅ Tamamlandı";
+            setAutoAssignSimulationOutput(output);
+            setShowCompletedAssignments([...showCompletedAssignments, '120B', '130B']);
+            
+            setTimeout(() => {
+              setAutoAssignSimulationStep(6);
+              setActiveHat('120A');
+              const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #2: 130 B Çıkışı (Tehlikeli durum - Şerif Sokak)\n• Hat Tipi: Havai\n• Tesisatlar: 32-42\n• Atanan Araç: 34ABC123 (Şerif Sokak'ta havai tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #3: 120 A Çıkışı (Normal durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 1-10\n• Atama için uygun araç aranıyor...";
+              setAutoAssignSimulationOutput(output);
+              
+              setTimeout(() => {
+                setAutoAssignSimulationStep(7);
+                const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #2: 130 B Çıkışı (Tehlikeli durum - Şerif Sokak)\n• Hat Tipi: Havai\n• Tesisatlar: 32-42\n• Atanan Araç: 34ABC123 (Şerif Sokak'ta havai tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #3: 120 A Çıkışı (Normal durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 1-10\n• Atanan Araç: 34GG6280 (Yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı";
+                setAutoAssignSimulationOutput(output);
+                setShowCompletedAssignments([...showCompletedAssignments, '120B', '130B', '120A']);
+                
+                setTimeout(() => {
+                  setAutoAssignSimulationStep(8);
+                  setActiveHat('130A');
+                  const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #2: 130 B Çıkışı (Tehlikeli durum - Şerif Sokak)\n• Hat Tipi: Havai\n• Tesisatlar: 32-42\n• Atanan Araç: 34ABC123 (Şerif Sokak'ta havai tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #3: 120 A Çıkışı (Normal durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 1-10\n• Atanan Araç: 34GG6280 (Yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #4: 130 A Çıkışı (Normal durum - Şerif Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 22-31\n• Atama için uygun araç aranıyor...";
+                  setAutoAssignSimulationOutput(output);
+                  
+                  setTimeout(() => {
+                    setAutoAssignSimulationStep(9);
+                    const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #2: 130 B Çıkışı (Tehlikeli durum - Şerif Sokak)\n• Hat Tipi: Havai\n• Tesisatlar: 32-42\n• Atanan Araç: 34ABC123 (Şerif Sokak'ta havai tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #3: 120 A Çıkışı (Normal durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 1-10\n• Atanan Araç: 34GG6280 (Yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #4: 130 A Çıkışı (Normal durum - Şerif Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 22-31\n• Atanan Araç: 34ME7890 (Yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı";
+                    setAutoAssignSimulationOutput(output);
+                    setShowCompletedAssignments([...showCompletedAssignments, '120B', '130B', '120A', '130A']);
+                    
+                    setTimeout(() => {
+                      setAutoAssignSimulationStep(10);
+                      setActiveHat(null);
+                      const output = "## AG Fider Çıkışlarına Göre Otomatik Atama Başlatılıyor...\n\n1. Tesisat numaraları kofrelerle eşleştirildi.\n2. Tehlikeli durum bildirimleri tespit edildi.\n3. Aynı AG Fider çıkışına bağlı kofreler belirlendi.\n\n## Atama #1: 120 B Çıkışı (Tehlikeli durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 11-21\n• Atanan Araç: 34FF5179 (Hisar Sokak'ta yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #2: 130 B Çıkışı (Tehlikeli durum - Şerif Sokak)\n• Hat Tipi: Havai\n• Tesisatlar: 32-42\n• Atanan Araç: 34ABC123 (Şerif Sokak'ta havai tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #3: 120 A Çıkışı (Normal durum - Hisar Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 1-10\n• Atanan Araç: 34GG6280 (Yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Atama #4: 130 A Çıkışı (Normal durum - Şerif Sokak)\n• Hat Tipi: Yeraltı\n• Tesisatlar: 22-31\n• Atanan Araç: 34ME7890 (Yeraltı tipi araç)\n• Atama Durumu: ✅ Tamamlandı\n\n## Özet\n• Toplam Atama: 4/4 (100%)\n• Tehlikeli Durum Atamaları: 2/2 (100%)\n• Atanan Araç Sayısı: 4\n• İşlem Tamamlandı!";
+                      setAutoAssignSimulationOutput(output);
+                    }, 3000);
+                  }, 2000);
+                }, 2000);
+              }, 2000);
+            }, 2000);
+          }, 2000);
+        }, 2000);
+      }, 3000);
+    }, 2000);
+  };
+
+  // Otomatik atama simülasyonunu sıfırla
+  const resetAutoAssignSimulation = () => {
+    setAutoAssignSimulationStarted(false);
+    setAutoAssignSimulationStep(0);
+    setActiveHat(null);
+    setShowCompletedAssignments([]);
+    setAutoAssignSimulationOutput("");
   };
 
   // Tarayıcıda olduğumuzu belirlemek için
@@ -502,66 +627,268 @@ export default function YandexMap() {
   }, [trafo1Status, trafo2Status, simulationStarted, simulationStep, activeTrafo, isBrowser]);
 
   return (
-    <div className="map-container flex h-[80vh]">
-      <div ref={mapRef} style={{ width: '85%', height: '100%' }} />
-      
-      <div className="sidebar w-[15%] bg-white p-1 flex flex-col">
-        <div className="bg-white p-1 mb-1 border-b border-gray-200">
-          <h3 className="text-xs font-bold mb-1.5 text-center text-gray-700">Kontrol Paneli</h3>
-          
-          {!simulationStarted ? (
-            <div className="space-y-1">
-              <button 
-                onClick={startSimulation}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-2 rounded text-xxs"
-              >
-                Simülasyonu Başlat
-              </button>
-            </div>
+    <div className="flex flex-col md:flex-row gap-4 bg-gray-50 p-4 rounded-xl shadow-sm">
+      {/* Sol taraf - Harita */}
+      <div className="w-full md:w-3/4 bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="p-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold">Ataşehir Haritası</h2>
+            <p className="text-sm opacity-80">AG Fider Çıkışları ve Araç Konumları</p>
+          </div>
+          {/* Küçük buton */}
+          {!autoAssignSimulationStarted ? (
+            <button 
+              className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white text-xs py-2 px-3 rounded-lg shadow-sm transition duration-200 flex items-center justify-center"
+              onClick={startAutoAssignSimulation}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" />
+              </svg>
+              Otomatik Atama
+            </button>
           ) : (
-            <div className="mb-1 space-y-1">
-              <button 
-                onClick={resetSimulation}
-                className="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-1 px-2 rounded text-xxs"
-              >
-                Sıfırla
-              </button>
-            </div>
+            <button 
+              className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white text-xs py-2 px-3 rounded-lg shadow-sm transition duration-200 flex items-center justify-center"
+              onClick={resetAutoAssignSimulation}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
+              </svg>
+              Durdur
+            </button>
           )}
         </div>
-        
-        {simulationStarted && (
-          <div className="flex-1 bg-white p-1 mb-1">
-            <div className="flex items-center justify-end mb-1">
-              {(activeTrafo === '120' && simulationStep < 6) || (activeTrafo === '130' && simulationStep < 12) ? (
-                <span className="text-xxs text-yellow-600 bg-yellow-50 px-1 py-0.5 rounded-sm">
-                  İşleniyor...
-                </span>
-              ) : simulationStep >= 6 ? (
-                <span className="text-xxs text-green-600 bg-green-50 px-1 py-0.5 rounded-sm">
-                  Tamamlandı
-                </span>
-              ) : null}
-            </div>
-            <pre className="bg-white text-gray-800 p-1.5 rounded-sm font-mono text-xxs whitespace-pre-line overflow-auto border border-gray-300 h-48">
-              {simulationOutput.includes(ARAC_1_PLAKA) && (
-                <span 
-                  dangerouslySetInnerHTML={{ 
-                    __html: simulationOutput.replace(
-                      ARAC_1_PLAKA, 
-                      `<span style="color:red;font-weight:bold">${ARAC_1_PLAKA}</span>`
-                    ).replace(
-                      ARAC_4_PLAKA, 
-                      `<span style="color:red;font-weight:bold">${ARAC_4_PLAKA}</span>`
-                    )
-                  }} 
-                />
-              )}
-              {!simulationOutput.includes(ARAC_1_PLAKA) && simulationOutput}
-            </pre>
-          </div>
-        )}
+        <div ref={mapRef} className="h-[600px]"></div>
       </div>
+
+      {/* Sağ taraf - Atama bilgileri paneli (simülasyon çalıştığında görünür) */}
+      {autoAssignSimulationStarted && (
+        <div className="w-full md:w-1/4 flex flex-col gap-4">
+          <div className="bg-white p-4 rounded-xl shadow-sm flex-1 flex flex-col max-h-[600px] overflow-hidden">
+            <h3 className="text-lg font-bold text-gray-800 border-b pb-2 mb-3 flex items-center justify-between">
+              Otomatik Atama
+              <span className="text-sm font-normal bg-blue-100 text-blue-800 py-1 px-2 rounded-full">
+                Adım {autoAssignSimulationStep}/10
+              </span>
+            </h3>
+
+            <div className="overflow-y-auto flex-1 pr-2 custom-scrollbar">
+              {/* AG Fider Durum Kartları */}
+              <div className="grid grid-cols-1 gap-3 mt-3">
+                {/* 120B Çıkışı */}
+                <div className={`relative p-3 rounded-lg border-l-4 ${showCompletedAssignments.includes('120B') 
+                  ? 'border-l-green-600 bg-green-50' 
+                  : activeHat === '120B' 
+                    ? 'border-l-blue-600 bg-blue-50 animate-pulse' 
+                    : 'border-l-gray-300 bg-gray-50'}`}>
+                  
+                  {showCompletedAssignments.includes('120B') && (
+                    <div className="absolute -right-2 -top-2 bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div className={`font-bold text-base ${showCompletedAssignments.includes('120B') ? 'text-green-800' : activeHat === '120B' ? 'text-blue-800' : 'text-gray-800'}`}>120B Çıkışı</div>
+                  <div className="mt-1 text-sm flex items-center">
+                    <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                    <span className="font-medium text-red-700">Tehlikeli Durum</span>
+                    <span className="mx-1">-</span>
+                    <span>Hisar Sokak</span>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1 flex items-center">
+                    <span className="mr-1">Tesisatlar:</span>
+                    <span className="font-medium">11-21</span>
+                  </div>
+                  {showCompletedAssignments.includes('120B') && (
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-gray-300">
+                      <div className="text-xs">Atanan Araç:</div>
+                      <div className="bg-red-100 text-red-800 text-xs font-bold py-1 px-2 rounded">
+                        {ARAC_FF5179}
+                      </div>
+                    </div>
+                  )}
+                  {activeHat === '120B' && !showCompletedAssignments.includes('120B') && (
+                    <div className="mt-2 text-xs text-blue-700 flex items-center">
+                      <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Atama işleniyor...
+                    </div>
+                  )}
+                </div>
+
+                {/* 130B Çıkışı */}
+                <div className={`relative p-3 rounded-lg border-l-4 ${showCompletedAssignments.includes('130B') 
+                  ? 'border-l-green-600 bg-green-50' 
+                  : activeHat === '130B' 
+                    ? 'border-l-blue-600 bg-blue-50 animate-pulse' 
+                    : 'border-l-gray-300 bg-gray-50'}`}>
+                  
+                  {showCompletedAssignments.includes('130B') && (
+                    <div className="absolute -right-2 -top-2 bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div className={`font-bold text-base ${showCompletedAssignments.includes('130B') ? 'text-green-800' : activeHat === '130B' ? 'text-blue-800' : 'text-gray-800'}`}>130B Çıkışı</div>
+                  <div className="mt-1 text-sm flex items-center">
+                    <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                    <span className="font-medium text-red-700">Tehlikeli Durum</span>
+                    <span className="mx-1">-</span>
+                    <span>Şerif Sokak</span>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1 flex items-center">
+                    <span className="mr-1">Tesisatlar:</span>
+                    <span className="font-medium">32-42</span>
+                  </div>
+                  {showCompletedAssignments.includes('130B') && (
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-gray-300">
+                      <div className="text-xs">Atanan Araç:</div>
+                      <div className="bg-red-100 text-red-800 text-xs font-bold py-1 px-2 rounded">
+                        {ARAC_ABC123}
+                      </div>
+                    </div>
+                  )}
+                  {activeHat === '130B' && !showCompletedAssignments.includes('130B') && (
+                    <div className="mt-2 text-xs text-blue-700 flex items-center">
+                      <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Atama işleniyor...
+                    </div>
+                  )}
+                </div>
+
+                {/* 120A Çıkışı */}
+                <div className={`relative p-3 rounded-lg border-l-4 ${showCompletedAssignments.includes('120A') 
+                  ? 'border-l-green-600 bg-green-50' 
+                  : activeHat === '120A' 
+                    ? 'border-l-blue-600 bg-blue-50 animate-pulse' 
+                    : 'border-l-gray-300 bg-gray-50'}`}>
+                  
+                  {showCompletedAssignments.includes('120A') && (
+                    <div className="absolute -right-2 -top-2 bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div className={`font-bold text-base ${showCompletedAssignments.includes('120A') ? 'text-green-800' : activeHat === '120A' ? 'text-blue-800' : 'text-gray-800'}`}>120A Çıkışı</div>
+                  <div className="mt-1 text-sm flex items-center">
+                    <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                    <span className="font-medium text-blue-700">Normal Durum</span>
+                    <span className="mx-1">-</span>
+                    <span>Hisar Sokak</span>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1 flex items-center">
+                    <span className="mr-1">Tesisatlar:</span>
+                    <span className="font-medium">1-10</span>
+                  </div>
+                  {showCompletedAssignments.includes('120A') && (
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-gray-300">
+                      <div className="text-xs">Atanan Araç:</div>
+                      <div className="bg-red-100 text-red-800 text-xs font-bold py-1 px-2 rounded">
+                        {ARAC_GG6280}
+                      </div>
+                    </div>
+                  )}
+                  {activeHat === '120A' && !showCompletedAssignments.includes('120A') && (
+                    <div className="mt-2 text-xs text-blue-700 flex items-center">
+                      <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Atama işleniyor...
+                    </div>
+                  )}
+                </div>
+
+                {/* 130A Çıkışı */}
+                <div className={`relative p-3 rounded-lg border-l-4 ${showCompletedAssignments.includes('130A') 
+                  ? 'border-l-green-600 bg-green-50' 
+                  : activeHat === '130A' 
+                    ? 'border-l-blue-600 bg-blue-50 animate-pulse' 
+                    : 'border-l-gray-300 bg-gray-50'}`}>
+                  
+                  {showCompletedAssignments.includes('130A') && (
+                    <div className="absolute -right-2 -top-2 bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div className={`font-bold text-base ${showCompletedAssignments.includes('130A') ? 'text-green-800' : activeHat === '130A' ? 'text-blue-800' : 'text-gray-800'}`}>130A Çıkışı</div>
+                  <div className="mt-1 text-sm flex items-center">
+                    <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                    <span className="font-medium text-blue-700">Normal Durum</span>
+                    <span className="mx-1">-</span>
+                    <span>Şerif Sokak</span>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1 flex items-center">
+                    <span className="mr-1">Tesisatlar:</span>
+                    <span className="font-medium">22-31</span>
+                  </div>
+                  {showCompletedAssignments.includes('130A') && (
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-gray-300">
+                      <div className="text-xs">Atanan Araç:</div>
+                      <div className="bg-red-100 text-red-800 text-xs font-bold py-1 px-2 rounded">
+                        {ARAC_ME7890}
+                      </div>
+                    </div>
+                  )}
+                  {activeHat === '130A' && !showCompletedAssignments.includes('130A') && (
+                    <div className="mt-2 text-xs text-blue-700 flex items-center">
+                      <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Atama işleniyor...
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Özet bilgiler */}
+              {autoAssignSimulationStep === 10 && (
+                <div className="mt-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-lg p-4">
+                  <h4 className="font-bold text-lg text-green-800 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Atama Tamamlandı
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div className="bg-white p-3 rounded-lg shadow-sm flex flex-col items-center justify-center">
+                      <div className="text-sm text-gray-600 mb-1">Toplam Atama</div>
+                      <div className="text-xl font-bold text-green-600">4/4</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm flex flex-col items-center justify-center">
+                      <div className="text-sm text-gray-600 mb-1">Tehlikeli Durum</div>
+                      <div className="text-xl font-bold text-red-600">2/2</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm flex flex-col items-center justify-center">
+                      <div className="text-sm text-gray-600 mb-1">Araç Sayısı</div>
+                      <div className="text-xl font-bold text-blue-600">4</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm flex flex-col items-center justify-center">
+                      <div className="text-sm text-gray-600 mb-1">Başarı Oranı</div>
+                      <div className="text-xl font-bold text-green-600">100%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
